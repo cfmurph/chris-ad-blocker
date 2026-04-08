@@ -1,0 +1,11 @@
+[
+  {
+    "trigger": {
+      "url-filter": ".*",
+      "if-domain": ["example-ads.test"]
+    },
+    "action": {
+      "type": "block"
+    }
+  }
+]

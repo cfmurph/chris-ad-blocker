@@ -1,0 +1,72 @@
+name: ChrisAdBlocker
+options:
+  minimumXcodeGenVersion: 2.39.0
+  deploymentTarget:
+    macOS: "14.0"
+settings:
+  base:
+    SWIFT_VERSION: 5.10
+targets:
+  AdBlockerHost:
+    type: application
+    platform: macOS
+    info:
+      path: App/Info.plist
+    sources:
+      - path: App/Sources
+    resources:
+      - path: App/Resources
+    entitlements:
+      path: App/AdBlockerHost.entitlements
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.example.chrisadblocker
+        PRODUCT_NAME: AdBlockerHost
+    dependencies:
+      - target: AdBlockerCore
+      - target: AdBlockerContentBlocker
+        embed: true
+
+  AdBlockerContentBlocker:
+    type: app-extension
+    platform: macOS
+    info:
+      path: Extensions/ContentBlocker/Info.plist
+    sources:
+      - path: Extensions/ContentBlocker/Sources
+    resources:
+      - path: Extensions/ContentBlocker/Resources
+    entitlements:
+      path: Extensions/ContentBlocker/AdBlockerContentBlocker.entitlements
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.example.chrisadblocker.content-blocker
+        PRODUCT_NAME: AdBlockerContentBlocker
+        SKIP_INSTALL: YES
+    dependencies:
+      - target: AdBlockerCore
+
+  AdBlockerCore:
+    type: framework
+    platform: macOS
+    info:
+      path: Shared/Info.plist
+    sources:
+      - path: Shared/Sources
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.example.chrisadblocker.core
+        PRODUCT_NAME: AdBlockerCore
+        DEFINES_MODULE: YES
+
+  RuleCompilerTests:
+    type: bundle.unit-test
+    platform: macOS
+    sources:
+      - path: Tests/RuleCompilerTests
+    dependencies:
+      - target: AdBlockerCore
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.example.chrisadblocker.tests
+        PRODUCT_NAME: RuleCompilerTests
