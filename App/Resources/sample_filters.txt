@@ -1,0 +1,4 @@
+! Minimal example list in EasyList-like syntax.
+||ads.example.com^
+||tracking.example.org^
+@@||allowed.example.com^
