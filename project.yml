@@ -58,12 +58,14 @@ targets:
         PRODUCT_BUNDLE_IDENTIFIER: com.example.chrisadblocker.core
         PRODUCT_NAME: AdBlockerCore
         DEFINES_MODULE: YES
+    dependencies:
+      - sdk: CryptoKit.framework
 
   RuleCompilerTests:
     type: bundle.unit-test
     platform: macOS
     sources:
-      - path: Tests/RuleCompilerTests
+      - path: Tests
     dependencies:
       - target: AdBlockerCore
     settings:
