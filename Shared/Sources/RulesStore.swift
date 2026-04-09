@@ -1,23 +1,16 @@
 import Foundation
 
-public enum RulesStoreError: Error {
-    case metadataCorrupted
-}
-
-public final class RulesStore: RuleStoring {
+public final class RulesStore {
     private let fileManager: FileManager
     private let groupIdentifier: String
     private let fallbackDirectoryName = "ChrisAdBlocker"
-    private let baseDirectoryOverride: URL?
 
     public init(
         fileManager: FileManager = .default,
-        appGroupIdentifier: String = AppConfiguration.appGroupIdentifier,
-        baseDirectoryOverride: URL? = nil
+        appGroupIdentifier: String = AppConfiguration.appGroupIdentifier
     ) {
         self.fileManager = fileManager
         self.groupIdentifier = appGroupIdentifier
-        self.baseDirectoryOverride = baseDirectoryOverride
     }
 
     public func writeRules(_ rules: [SafariContentBlockerRule]) throws {
@@ -35,11 +28,6 @@ public final class RulesStore: RuleStoring {
     }
 
     public var blockerListURL: URL {
-        if let baseDirectoryOverride {
-            try? fileManager.createDirectory(at: baseDirectoryOverride, withIntermediateDirectories: true)
-            return baseDirectoryOverride.appendingPathComponent(AppConfiguration.blockerListFileName)
-        }
-
         if let containerURL = fileManager.containerURL(forSecurityApplicationGroupIdentifier: groupIdentifier) {
             return containerURL.appendingPathComponent(AppConfiguration.blockerListFileName)
         }
@@ -60,56 +48,5 @@ public final class RulesStore: RuleStoring {
         }
 
         try? writeRulesJSON(data)
-    }
-
-    public func loadRulesJSONIfExists() -> Data? {
-        guard fileManager.fileExists(atPath: blockerListURL.path) else {
-            return nil
-        }
-        return try? Data(contentsOf: blockerListURL)
-    }
-
-    public func restoreRulesFromBackup(_ backup: Data?) throws {
-        if let backup {
-            try writeRulesJSON(backup)
-        } else if fileManager.fileExists(atPath: blockerListURL.path) {
-            try fileManager.removeItem(at: blockerListURL)
-        }
-    }
-
-    public func loadSourceMetadata(for sourceKey: String) -> RuleSourceMetadata? {
-        guard let index = try? readMetadataIndex() else {
-            return nil
-        }
-        return index.bySource[sourceKey]
-    }
-
-    public func writeSourceMetadata(_ metadata: RuleSourceMetadata, for sourceKey: String) throws {
-        var index = try readMetadataIndex()
-        index.bySource[sourceKey] = metadata
-        try writeMetadataIndex(index)
-    }
-
-    private var metadataURL: URL {
-        blockerListURL
-            .deletingLastPathComponent()
-            .appendingPathComponent(AppConfiguration.sourceMetadataFileName)
-    }
-
-    private func readMetadataIndex() throws -> RuleSourceMetadataIndex {
-        guard fileManager.fileExists(atPath: metadataURL.path) else {
-            return RuleSourceMetadataIndex(bySource: [:])
-        }
-        let data = try Data(contentsOf: metadataURL)
-        do {
-            return try JSONDecoder().decode(RuleSourceMetadataIndex.self, from: data)
-        } catch {
-            throw RulesStoreError.metadataCorrupted
-        }
-    }
-
-    private func writeMetadataIndex(_ index: RuleSourceMetadataIndex) throws {
-        let data = try JSONEncoder.safariRulesEncoder.encode(index)
-        try data.write(to: metadataURL, options: .atomic)
     }
 }

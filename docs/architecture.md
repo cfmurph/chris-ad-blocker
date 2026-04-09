@@ -33,37 +33,19 @@ all business logic inside a reusable core module.
 - Shared rules file: `blockerList.json` at App Group root.
 - Extension fallback: bundled `Extensions/ContentBlocker/Resources/blockerList.json`.
 
-## Current compiler and updater scope
+## Current compiler scope
 
-Implemented ABP-oriented scope:
+Implemented subset (starter-safe):
 
-- Block and exception rules:
-  - `||ads.example.com^` -> Safari `block`
-  - `@@||allowed.example.com^` -> Safari `ignore-previous-rules`
-- Pattern translation:
-  - host-anchor `||`, start/end anchors `|...|`, wildcard `*`, separator `^`, `/regex/`
-- Options:
-  - resource modifiers (`script`, `image`, `stylesheet`, `font`, etc.)
-  - negated resource modifiers (`~image`) with resolved resource type expansion
-  - party scope (`third-party`, `~third-party`)
-  - domain scoping (`domain=foo.com|~bar.com`)
-  - case sensitivity (`match-case`)
-- Canonicalization + dedupe:
-  - deterministic lowercasing/sorting for domains and tokens
-  - canonical rule keys for stable deduplication
-- Safari rule-limit strategy:
-  - configurable max rule count
-  - reserved slots for exception rules
-  - deterministic truncation order
+- Block rules: `||ads.example.com^`
+- Simple token lines: `adserver.example`
+- Ignore comments/meta: `!`, `[`
+- Ignore unsupported syntax for now: `@@`, `##`, `#@#`
 
-Implemented updater reliability scope:
+## Recommended next upgrades
 
-- Conditional requests with persisted metadata (`ETag`, `Last-Modified`)
-- Signature policies:
-  - expected SHA256
-  - remote checksum file SHA256
-  - pin-to-first-seen SHA256
-- Rollback behavior:
-  - rules file rollback if metadata persistence fails after write
-  - source metadata persisted by source URL key
+- Add explicit allowlist (`@@`) support.
+- Map ABP options to Safari trigger fields (`resource-type`, `if-domain`).
+- Add list checksum/signature handling for safe updates.
+- Add large-list performance benchmarks and limits per update.
 

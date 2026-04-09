@@ -16,7 +16,7 @@ final class ContentBlockerViewModel: ObservableObject {
     @Published var sourceURLString: String = "https://easylist.to/easylist/easylist.txt"
 
     private let ruleStore = RulesStore()
-    private let updateService = RuleUpdateService()
+    private let updater = RuleListUpdater()
     private let compiler = RuleCompiler()
     private let contentBlockerIdentifier = AppConfiguration.contentBlockerIdentifier
 
@@ -26,7 +26,7 @@ final class ContentBlockerViewModel: ObservableObject {
 
     func refreshRules() async {
         status = .updating
-        details = "Downloading, verifying, and compiling filter rules..."
+        details = "Downloading and compiling filter rules..."
 
         guard let url = URL(string: sourceURLString) else {
             status = .failure
@@ -35,25 +35,12 @@ final class ContentBlockerViewModel: ObservableObject {
         }
 
         do {
-            let result = try await updateService.updateRules(
-                from: url,
-                signaturePolicy: .pinToFirstSeen,
-                compilerConfiguration: .safariDefault
-            )
+            let source = try await updater.fetchFilterText(from: url)
+            let rules = try compiler.compile(rawFilterText: source)
+            try ruleStore.writeRules(rules)
             try await reloadContentBlocker()
-
-            switch result.status {
-            case .updated:
-                status = .success
-                if let report = result.report {
-                    details = "Updated \(result.appliedRuleCount) rules (deduped: \(report.deduplicatedRuleCount), truncated: \(report.truncatedRuleCount), unsupported: \(report.unsupportedRuleCount))."
-                } else {
-                    details = "Updated \(result.appliedRuleCount) rules."
-                }
-            case .notModified:
-                status = .success
-                details = "Filter source unchanged. Active rules: \(result.appliedRuleCount)."
-            }
+            status = .success
+            details = "Generated \(rules.count) Safari content blocker rules."
         } catch {
             status = .failure
             details = error.localizedDescription
