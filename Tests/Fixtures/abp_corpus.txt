@@ -1,0 +1,11 @@
+! Comments and metadata should be ignored
+[Adblock Plus 2.0]
+||ads.example.com^
+@@||allowed.example.com^$script,domain=example.com|~shop.example.com
+||cdn.example.net^$image,third-party
+||tracker.example.org^$xmlhttprequest,domain=example.com|foo.com
+|https://banner.example.com/ads.js|
+/advert\d+/
+example-inline-token
+||mixed.example^$stylesheet,~image,domain=example.com|~mail.example.com
+@@|https://pay.example.com/checkout|$domain=shop.example.com
